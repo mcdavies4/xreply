@@ -63,14 +63,19 @@ export default function Home() {
     setTimeout(() => setCopied(c => ({ ...c, [tweetId]: false })), 2000);
   }
 
-  // Open X reply intent URL (pre-fills the reply box on X)
+  // Open X reply intent URL — uses <a> click for iOS Safari compatibility
   function openOnX(tweet) {
     const text = replies[tweet.id]?.text || '';
-    // X intent URL pre-fills the compose box as a reply
     const url = text
-      ? `https://x.com/intent/post?in_reply_to=${tweet.id}&text=${encodeURIComponent(text)}`
-      : `https://x.com/intent/post?in_reply_to=${tweet.id}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+      ? `https://twitter.com/intent/tweet?in_reply_to=${tweet.id}&text=${encodeURIComponent(text)}`
+      : `https://twitter.com/intent/tweet?in_reply_to=${tweet.id}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
 
   function updateText(id, text) {
@@ -92,11 +97,7 @@ export default function Home() {
     return `${Math.round(d/86400)}d ago`;
   };
 
-  // Open tweet — direct web URL, works on all devices
-  function openTweet(tweet) {
-    const url = `https://x.com/${tweet.author?.username}/status/${tweet.id}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
-  }
+
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: '20px 16px', paddingBottom: 60 }}>
@@ -188,10 +189,13 @@ export default function Home() {
                 </div>
               </div>
               <div style={{ display:'flex', gap:6 }}>
-                <button onClick={() => openTweet(tweet)}
-                  style={{ fontSize:11, color:'#555', padding:'4px 9px', border:'1px solid #222', borderRadius:6, background:'transparent', cursor:'pointer', fontFamily:'inherit' }}>
+                <a 
+                  href={`https://twitter.com/${tweet.author?.username}/status/${tweet.id}`}
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ fontSize:11, color:'#555', padding:'4px 9px', border:'1px solid #222', borderRadius:6, textDecoration:'none', display:'inline-block' }}>
                   View on X ↗
-                </button>
+                </a>
                 <button onClick={() => dismiss(tweet.id)}
                   style={{ fontSize:11, color:'#444', padding:'4px 9px', border:'1px solid #222', borderRadius:6, background:'transparent', cursor:'pointer', fontFamily:'inherit' }}>
                   Skip
