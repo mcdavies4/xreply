@@ -92,6 +92,24 @@ export default function Home() {
     return `${Math.round(d/86400)}d ago`;
   };
 
+  // Open tweet in X app (deep link) or browser fallback
+  function openTweet(tweet) {
+    const username = tweet.author?.username;
+    const id = tweet.id;
+    // Try X app deep link first on mobile
+    const appUrl = `twitter://status?id=${id}`;
+    const webUrl = `https://x.com/${username}/status/${id}`;
+    // On mobile, attempt app deep link then fall back to web
+    const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+      // Try app link — if X app is installed it opens, otherwise falls to web
+      window.location = appUrl;
+      setTimeout(() => { window.open(webUrl, '_blank', 'noopener,noreferrer'); }, 1000);
+    } else {
+      window.open(webUrl, '_blank', 'noopener,noreferrer');
+    }
+  }
+
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: '20px 16px', paddingBottom: 60 }}>
 
@@ -182,10 +200,10 @@ export default function Home() {
                 </div>
               </div>
               <div style={{ display:'flex', gap:6 }}>
-                <a href={tweet.url} target="_blank" rel="noopener noreferrer"
-                  style={{ fontSize:11, color:'#555', padding:'4px 9px', border:'1px solid #222', borderRadius:6, textDecoration:'none' }}>
-                  View ↗
-                </a>
+                <button onClick={() => openTweet(tweet)}
+                  style={{ fontSize:11, color:'#555', padding:'4px 9px', border:'1px solid #222', borderRadius:6, background:'transparent', cursor:'pointer', fontFamily:'inherit' }}>
+                  View on X ↗
+                </button>
                 <button onClick={() => dismiss(tweet.id)}
                   style={{ fontSize:11, color:'#444', padding:'4px 9px', border:'1px solid #222', borderRadius:6, background:'transparent', cursor:'pointer', fontFamily:'inherit' }}>
                   Skip
