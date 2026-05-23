@@ -92,22 +92,10 @@ export default function Home() {
     return `${Math.round(d/86400)}d ago`;
   };
 
-  // Open tweet in X app (deep link) or browser fallback
+  // Open tweet — direct web URL, works on all devices
   function openTweet(tweet) {
-    const username = tweet.author?.username;
-    const id = tweet.id;
-    // Try X app deep link first on mobile
-    const appUrl = `twitter://status?id=${id}`;
-    const webUrl = `https://x.com/${username}/status/${id}`;
-    // On mobile, attempt app deep link then fall back to web
-    const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
-    if (isMobile) {
-      // Try app link — if X app is installed it opens, otherwise falls to web
-      window.location = appUrl;
-      setTimeout(() => { window.open(webUrl, '_blank', 'noopener,noreferrer'); }, 1000);
-    } else {
-      window.open(webUrl, '_blank', 'noopener,noreferrer');
-    }
+    const url = `https://x.com/${tweet.author?.username}/status/${tweet.id}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
   }
 
   return (
