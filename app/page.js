@@ -4,12 +4,21 @@ import { useState, useCallback } from 'react';
 const KEYWORD_LABELS = [
   'what are you building',
   'what did you ship',
-  'show me your project',
-  'side project launched',
   'build in public shipped',
   'indie hacker working on',
+  'side project launched',
   'show your product',
-  'what are you working on',
+  'hate uploading PDF',
+  'PDF tool free',
+  'ilovepdf / smallpdf alternative',
+  'PDF privacy upload',
+  'scan to PDF',
+  'PDF to Excel/CSV',
+  'sign PDF free',
+  'compress PDF free',
+  'merge PDF free',
+  'bates numbering',
+  'redline PDF contract',
 ];
 
 export default function Home() {
