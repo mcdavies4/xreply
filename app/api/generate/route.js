@@ -1,50 +1,55 @@
-// POST /api/generate
-// Generates a personalised reply using Claude — trained on all 40 tools
-
 export async function POST(request) {
-  const { tweet } = await request.json();
+  const { tweet, tone } = await request.json();
   if (!tweet) return Response.json({ error: 'Missing tweet' }, { status: 400 });
 
   const PRODUCT = `
-RightPDFKit (rightpdfkit.com) — 40 free PDF tools that run entirely in your browser.
-Your files NEVER leave your device. No uploads. No server. No account. Works offline.
+RightPDFKit (rightpdfkit.com) — 51 free PDF tools in your browser. Built by a solo founder in London.
 
-CORE DIFFERENTIATOR: Files are processed locally using pdf-lib and PDF.js (WebAssembly).
-There is no server endpoint — it is architecturally impossible for files to be intercepted.
+CORE DIFFERENTIATOR: Files NEVER leave your device. No server, no upload, no account. Architecturally impossible — there is no endpoint to send files to. Open DevTools Network tab while using it — zero requests during processing.
 
-KEY TOOLS BY CATEGORY:
+SOCIAL PROOF: 63,000+ page views in a few weeks. Zero paid ads. Purely organic.
 
-Organise: Merge PDFs, Split PDF, Reorder Pages, Extract Pages, Delete Pages
+KEY TOOLS:
+- Merge, Split, Compress, Rotate, Reorder pages
+- Sign PDF (draw/type/upload signature)
+- eSign + Certificate (SHA-256 hash, tamper-evident)
+- OCR (extract text from scanned PDFs) — FREE unlike competitors
+- PDF to Word, PDF to Excel/CSV — FREE
+- Fill PDF Forms (text, checkboxes, dropdowns)
+- Smart Form Fill (AI fills form conversationally)
+- Scan to PDF (camera → perspective correction → PDF)
+- Receipt Scanner (scan → expenses CSV)
+- Scan to Data (camera → structured table)
+- Bulk Extractor (20 PDFs → one spreadsheet)
+- Form Creator (describe it → AI builds a PDF form)
+- PDF Chat (ask questions about your PDF)
+- PDF Translate (translate to any language)
+- PDF Summariser (structured/brief/executive summary)
+- Bates Numbering (legal reference stamps)
+- PDF Redline (tracked changes)
+- Compare PDFs (word-level diff)
+- Word to PDF (docx → PDF locally)
+- Image to PDF (JPG/PNG → PDF, drag to reorder)
+- Watermark, Page Numbers, Header/Footer
+- Protect, Unlock, Password Strength Checker
+- Repair PDF, N-up Print, QR Stamp
+- AI Assistant (natural language commands)
+- Works offline after first load
 
-Edit: Rotate Pages, Crop Pages, Add Image, Annotate, Redact (permanently), Header/Footer
-
-Enhance: Watermark, Page Numbers, Compress
-
-Security: Protect PDF (AES-128), Unlock PDF, Password Strength Checker
-
-Analyse: OCR (Tesseract.js — extracts text from scans), PDF to Text, PDF Info, Preview, PDF to Images
-
-Convert: PDF to Word (.docx), PDF to Excel/CSV (table extraction)
-
-Legal/Professional: Bates Numbering (sequential legal stamps), PDF Redline (tracked changes), Compare PDFs (word-level diff, side by side)
-
-Create: Scan to PDF (camera → auto edge detection → perspective correction → PDF, works on mobile)
-
-Forms: Fill PDF Form (text fields, checkboxes, dropdowns, radio buttons), Flatten Forms
-
-Transform: Insert Blank Page, Resize Pages, Grayscale, Edit Metadata, Sign PDF (draw/type/upload), Duplicate Page, N-up Print (2/4 pages per sheet), Repair PDF
-
-AI Assistant: Natural language commands — type "compress this, watermark CONFIDENTIAL, add page numbers" and it does all three locally. Powered by Claude API, files still never leave device.
-
-COMPARISON vs competitors:
-- iLovePDF: uploads every file, has ads, 25MB limit, daily caps
-- Smallpdf: uploads every file, £12/mo for pro, 25MB limit
-- Adobe Online: uploads every file, £14.99/mo, account required
-- RightPDFKit: ZERO uploads, free forever, no limits, no account, works offline
-
-SOCIAL PROOF: 42,000+ page views in first few weeks, zero paid ads, purely organic
-BUILT BY: Solo founder, London. The 36th Company Ltd.
+vs iLovePDF: iLovePDF uploads every file, has intrusive ads, 25MB limit, daily task caps
+vs Smallpdf: uploads every file, £12/month for pro, limited free tools
+vs Adobe: uploads everything, £14.99/month, account required
+RightPDFKit: zero uploads, free forever, no limits, no account
 `;
+
+  const toneInstructions = {
+    genuine: 'Sound like a real founder sharing something genuinely useful. Conversational, not salesy.',
+    technical: 'Lead with the technical angle — local processing, WebAssembly, architecturally impossible to upload.',
+    privacy: 'Lead with the privacy angle — files never leave their device, no server, no upload risk.',
+    feature: 'Highlight one specific feature that directly matches what they tweeted about.',
+  };
+
+  const selectedTone = toneInstructions[tone] || toneInstructions.genuine;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -56,34 +61,39 @@ BUILT BY: Solo founder, London. The 36th Company Ltd.
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 200,
-        system: `You write short, genuine, friendly replies to tweets on behalf of a founder promoting RightPDFKit.
+        max_tokens: 250,
+        system: `You write short genuine replies to tweets on behalf of a solo founder promoting RightPDFKit.
 
-PRODUCT INFO:
+PRODUCT:
 ${PRODUCT}
 
+TONE: ${selectedTone}
+
 RULES:
-- Max 250 characters INCLUDING the URL rightpdfkit.com
-- Sound like a real founder, not a bot or marketing copy
-- Pick ONE specific feature that directly relates to what they tweeted about
-- If they mention legal docs → mention Bates numbering or redline
-- If they mention scanning/camera → mention Scan to PDF
-- If they mention privacy/security → lead with "files never leave your device"
-- If they mention AI → mention the AI assistant
-- If they mention contracts/legal → mention compare PDFs or redline
-- If they mention Excel/spreadsheets → mention PDF to CSV
-- If they mention signing → mention Sign PDF
-- If they mention forms → mention Fill PDF Form
-- If they mention converting → mention PDF to Word
-- If general building/productivity → mention the 40 free tools privacy angle
+- Max 240 characters INCLUDING rightpdfkit.com
+- Sound like a real person, not marketing copy
+- Pick ONE specific relevant feature based on their tweet
+- Map tweet topics to features:
+  * legal/contracts → eSign + Certificate, Bates Numbering, Redline
+  * scanning/camera → Scan to PDF, Receipt Scanner  
+  * privacy/security → "files never leave your device", zero uploads
+  * AI/productivity → AI Assistant, PDF Chat, Smart Form Fill
+  * Excel/data → PDF to Excel/CSV, Bulk Extractor
+  * signing → Sign PDF, eSign + Certificate
+  * forms → Fill PDF Form, Form Creator
+  * translating → PDF Translate
+  * summarising → PDF Summariser
+  * Word/docs → Word to PDF
+  * images → Image to PDF
+  * general/building → privacy angle + 51 free tools
+  * ilovepdf/smallpdf complaints → "your files never leave your device"
 - Always end with: rightpdfkit.com
-- Don't start with "Hey" or "Hi" or "Great"
-- Don't be salesy — be genuinely helpful
+- Don't start with "Hey", "Hi", "Great", or "Wow"
 - Write in first person as the founder
 - Output ONLY the reply text, nothing else`,
         messages: [{
           role: 'user',
-          content: `Write a reply to this tweet:\n\n"${tweet.text}"\n\nBy @${tweet.author?.username}\n\nPick the most relevant feature from RightPDFKit based on what they're talking about.`
+          content: `Write a reply to:\n\n"${tweet.text}"\n\nBy @${tweet.author?.username}`
         }]
       })
     });
@@ -91,6 +101,7 @@ RULES:
     const data = await response.json();
     const reply = data.content?.[0]?.text?.trim() || '';
     return Response.json({ reply });
+
   } catch (err) {
     console.error('Claude error:', err);
     return Response.json({ error: err.message }, { status: 500 });
